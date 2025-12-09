@@ -343,7 +343,7 @@ function App() {
               </button>
               
               <a
-                href="https://github.com"
+                href="https://github.com/xieruibin/aipic"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
