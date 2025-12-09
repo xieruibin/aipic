@@ -352,7 +352,7 @@ function App() {
                 <Github size={20} />
               </a>
               <a
-                href="https://gitee.com"
+                href="https://gitee.com/xrb/aipic"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center"
