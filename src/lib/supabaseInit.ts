@@ -56,6 +56,11 @@ export async function initializeSupabase(): Promise<boolean> {
  */
 async function checkTableExists(tableName: string): Promise<boolean> {
   try {
+    if (!supabase) {
+      console.warn('Supabase client is not initialized')
+      return false
+    }
+
     const { error } = await supabase.from(tableName).select('id').limit(1)
 
     // 如果没有错误，表存在
@@ -94,6 +99,10 @@ export async function uploadImage(
   file: File,
   fileName?: string
 ): Promise<string> {
+  if (!supabase) {
+    throw new Error('Supabase client is not initialized')
+  }
+
   const name = fileName || `${Date.now()}-${file.name}`
 
   const { error } = await supabase.storage
