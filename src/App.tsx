@@ -8,7 +8,7 @@ import { CategoryFilter } from './components/CategoryFilter'
 import { CreatorsPage } from './pages/CreatorsPage'
 import { AboutPage } from './pages/AboutPage'
 import { CreatorDetailPage } from './pages/CreatorDetailPage'
-import { Grid2x2, Columns, ArrowUp, Github, Globe, Sun, Moon } from 'lucide-react'
+import { Grid2x2, Columns, ArrowUp, Github, Sun, Moon, Monitor, Menu, X } from 'lucide-react'
 import type { Prompt } from './lib/types'
 import type { Language } from './lib/i18n'
 import { t } from './lib/i18n'
@@ -31,6 +31,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1)
   const [displayedPrompts, setDisplayedPrompts] = useState<Prompt[]>([])
   const [showBackToTop, setShowBackToTop] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('language') as Language | null
     return saved || 'zh'
@@ -50,14 +51,47 @@ function App() {
   useEffect(() => {
     localStorage.setItem('theme', theme)
     const htmlElement = document.documentElement
-    
+
+    // 应用主题：当 theme === 'system' 时，优先根据本地时间（19:00-06:00）切换为暗色，白天则回退到系统偏好
+    const applyTheme = () => {
+      if (theme === 'system') {
+        const now = new Date()
+        const hour = now.getHours()
+        const isNight = hour >= 19 || hour < 6
+        if (isNight) {
+          htmlElement.classList.add('dark')
+        } else {
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          htmlElement.classList.toggle('dark', prefersDark)
+        }
+      } else {
+        htmlElement.classList.toggle('dark', theme === 'dark')
+      }
+    }
+
+    applyTheme()
+
+    // 如果处于 system 模式，则定期检查（每分钟）以在夜间到来/结束时自动切换，同时监听系统偏好变化
+    let intervalId: number | undefined
     if (theme === 'system') {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      htmlElement.classList.toggle('dark', prefersDark)
-    } else {
-      htmlElement.classList.toggle('dark', theme === 'dark')
+      intervalId = window.setInterval(applyTheme, 60 * 1000)
+      const mq = window.matchMedia('(prefers-color-scheme: dark)')
+      const mqHandler = () => applyTheme()
+      if (mq.addEventListener) mq.addEventListener('change', mqHandler)
+      else if ((mq as any).addListener) (mq as any).addListener(mqHandler)
+
+      return () => {
+        if (intervalId) clearInterval(intervalId)
+        if (mq.removeEventListener) mq.removeEventListener('change', mqHandler)
+        else if ((mq as any).removeListener) (mq as any).removeListener(mqHandler)
+      }
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId)
     }
   }, [theme])
+
 
   const tr = t(language)
 
@@ -240,7 +274,7 @@ function App() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background border-b">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 relative">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-8">
@@ -255,6 +289,7 @@ function App() {
                   className="text-sm font-medium text-foreground hover:text-primary transition-colors"
                   onClick={(e) => {
                     e.preventDefault()
+                    console.log('Navigate: home')
                     setActivePage('home')
                   }}
                 >
@@ -269,6 +304,7 @@ function App() {
                   }`}
                   onClick={(e) => {
                     e.preventDefault()
+                    console.log('Navigate: creators')
                     setActivePage('creators')
                   }}
                 >
@@ -283,6 +319,7 @@ function App() {
                   }`}
                   onClick={(e) => {
                     e.preventDefault()
+                    console.log('Navigate: about')
                     setActivePage('about')
                   }}
                 >
@@ -320,56 +357,131 @@ function App() {
               {/* Mobile Language Toggle */}
               <button
                 onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
-                className="sm:hidden inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="sm:hidden inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 title={language === 'zh' ? 'Switch to English' : '切换为中文'}
               >
-                <Globe size={18} />
+                <span className="text-sm font-medium">{language === 'zh' ? 'EN' : '中'}</span>
               </button>
 
-              {/* Theme Toggle */}
+              {/* Desktop Actions (hidden on small screens to avoid duplication with mobile menu) */}
+              <div className="hidden md:flex items-center gap-2">
+                {/* Theme Toggle */}
+                <button
+                  onClick={() => {
+                    const themes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
+                    const currentIndex = themes.indexOf(theme)
+                    const nextTheme = themes[(currentIndex + 1) % themes.length]
+                    setTheme(nextTheme)
+                  }}
+                  className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+                  title={`Current theme: ${theme}`}
+                >
+                  {theme === 'light' && <Sun size={20} />}
+                  {theme === 'dark' && <Moon size={20} />}
+                  {theme === 'system' && <Monitor size={20} />}
+                </button>
+
+                <a
+                  href="https://github.com/xieruibin/aipic"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+                  title="GitHub"
+                >
+                  <Github size={20} />
+                </a>
+                <a
+                  href="https://gitee.com/xrb/aipic"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center"
+                  title="Gitee"
+                  aria-label="Gitee"
+                >
+                  <img
+                    src="/logo-black.0c964084.svg"
+                    alt="Gitee"
+                    className="h-6 object-contain opacity-70 hover:opacity-100 transition-opacity"
+                  />
+                </a>
+                <AddPromptDialog onPromptAdded={fetchPrompts} />
+              </div>
+
+              {/* Mobile Menu Toggle (hamburger) */}
               <button
-                onClick={() => {
-                  const themes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
-                  const currentIndex = themes.indexOf(theme)
-                  const nextTheme = themes[(currentIndex + 1) % themes.length]
-                  setTheme(nextTheme)
-                }}
-                className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
-                title={`Current theme: ${theme}`}
+                onClick={() => setMobileMenuOpen(prev => !prev)}
+                className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               >
-                {theme === 'light' && <Sun size={20} />}
-                {theme === 'dark' && <Moon size={20} />}
-                {theme === 'system' && <Globe size={20} />}
+                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
               
-              <a
-                href="https://github.com/xieruibin/aipic"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
-                title="GitHub"
-              >
-                <Github size={20} />
-              </a>
-              <a
-                href="https://gitee.com/xrb/aipic"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center"
-                title="Gitee"
-                aria-label="Gitee"
-              >
-                <img
-                  src="/logo-black.0c964084.svg"
-                  alt="Gitee"
-                  className="h-6 object-contain opacity-70 hover:opacity-100 transition-opacity"
-                />
-              </a>
-              <AddPromptDialog onPromptAdded={fetchPrompts} />
+              
             </div>
           </div>
+          
         </div>
       </header>
+
+      {/* Mobile dropdown menu rendered outside header to avoid stacking context issues */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed right-4 top-16 mt-2 w-56 bg-card border border-border rounded-lg p-3 flex flex-col gap-2 z-[99999]">
+          <a
+            href="#browse-section"
+            className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+            onClick={(e) => { e.preventDefault(); console.log('Mobile Navigate: home'); setActivePage('home'); setMobileMenuOpen(false); }}
+          >
+            {tr('promptLibrary')}
+          </a>
+          <a
+            href="#creators"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            onClick={(e) => { e.preventDefault(); console.log('Mobile Navigate: creators'); setActivePage('creators'); setMobileMenuOpen(false); }}
+          >
+            {tr('creators')}
+          </a>
+          <a
+            href="#about"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            onClick={(e) => { e.preventDefault(); console.log('Mobile Navigate: about'); setActivePage('about'); setMobileMenuOpen(false); }}
+          >
+            {tr('about')}
+          </a>
+
+          <div className="border-t border-border pt-2 flex items-center gap-2">
+            <button
+              onClick={() => { setLanguage('zh'); setMobileMenuOpen(false); }}
+              className={`px-2 py-1 rounded text-xs font-medium transition-all ${language === 'zh' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              中文
+            </button>
+            <button
+              onClick={() => { setLanguage('en'); setMobileMenuOpen(false); }}
+              className={`px-2 py-1 rounded text-xs font-medium transition-all ${language === 'en' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              English
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 pt-2">
+            <button
+              onClick={() => { const themes: Array<'light' | 'dark' | 'system'> = ['light','dark','system']; const currentIndex = themes.indexOf(theme); setTheme(themes[(currentIndex+1)%themes.length]); setMobileMenuOpen(false); }}
+              className="p-2 rounded-md text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+              title={`Current theme: ${theme}`}
+            >
+              {theme === 'light' && <Sun size={16} />}
+              {theme === 'dark' && <Moon size={16} />}
+              {theme === 'system' && <Monitor size={16} />}
+            </button>
+            <a href="https://github.com/xieruibin/aipic" target="_blank" rel="noopener noreferrer" className="p-2 rounded-md">
+              <Github size={16} />
+            </a>
+            <a href="https://gitee.com/xrb/aipic" target="_blank" rel="noopener noreferrer" className="p-2 rounded-md">
+              <img src="/logo-black.0c964084.svg" alt="Gitee" className="h-4 object-contain" />
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8" id="browse-section">
@@ -439,42 +551,57 @@ function App() {
 
             {/* Category Filter and View Mode Toggle */}
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-              {/* Category Filter */}
-              <div className="w-full xl:w-auto">
-                <CategoryFilter 
-                  selectedCategory={selectedCategory}
-                  onCategoryChange={setSelectedCategory}
-                  language={language}
-                />
-              </div>
+                {/* Category Filter */}
+                <div className="w-full xl:w-auto">
+                  <CategoryFilter 
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                    language={language}
+                  />
+                </div>
 
-              {/* View Mode Toggle */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    viewMode === 'grid'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-card hover:bg-accent text-muted-foreground hover:text-foreground border border-border'
-                  }`}
-                  title="卡片视图"
-                >
-                  <Grid2x2 size={16} />
-                  <span>{tr('cardView')}</span>
-                </button>
-                <button
-                  onClick={() => setViewMode('masonry')}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    viewMode === 'masonry'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-card hover:bg-accent text-muted-foreground hover:text-foreground border border-border'
-                  }`}
-                  title="瀑布流视图"
-                >
-                  <Columns size={16} />
-                  <span>{tr('masonryView')}</span>
-                </button>
-              </div>
+                {/* Stats + View Mode Toggle */}
+                <div className="flex items-center gap-4">
+                  {/* 简单统计：作品总数 & 作者数量（在视图切换左侧） */}
+                  <div className="hidden sm:flex items-center gap-3">
+                    <div className="inline-flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-1 text-sm">
+                      <span className="text-xs text-muted-foreground">作品</span>
+                      <span className="font-medium">{prompts.length}</span>
+                    </div>
+                    <div className="inline-flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-1 text-sm">
+                      <span className="text-xs text-muted-foreground">作者</span>
+                      <span className="font-medium">{new Set(prompts.map(p => p.author?.username || '')).size}</span>
+                    </div>
+                  </div>
+
+                  {/* View Mode Toggle */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        viewMode === 'grid'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-card hover:bg-accent text-muted-foreground hover:text-foreground border border-border'
+                      }`}
+                      title="卡片视图"
+                    >
+                      <Grid2x2 size={16} />
+                      <span>{tr('cardView')}</span>
+                    </button>
+                    <button
+                      onClick={() => setViewMode('masonry')}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        viewMode === 'masonry'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-card hover:bg-accent text-muted-foreground hover:text-foreground border border-border'
+                      }`}
+                      title="瀑布流视图"
+                    >
+                      <Columns size={16} />
+                      <span>{tr('masonryView')}</span>
+                    </button>
+                  </div>
+                </div>
             </div>
 
             {/* Results */}

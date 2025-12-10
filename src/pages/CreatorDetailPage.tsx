@@ -145,7 +145,7 @@ export function CreatorDetailPage({ username, language, onBack }: CreatorDetailP
                     {author.platform.toUpperCase()}
                   </span>
                   <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary-foreground text-sm font-medium">
-                    {author.prompts_count} {isZh ? '个提示词' : 'prompts'}
+                    {author.prompts_count} {isZh ? '图片' : 'images'}
                   </span>
                 </div>
               </div>
