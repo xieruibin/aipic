@@ -48,7 +48,8 @@ export function CreatorDetailPage({ username, language, onBack }: CreatorDetailP
           id: p.id || String(idx),
           title: p.title_zh || p.title_en || '',
           description: p.description_zh || p.description_en || '',
-          content: '', // 内容需要单独获取
+          // 从后端返回的 p.prompts（数组）或 p.content 填充 content，保证弹窗能显示文本
+          content: (p.prompts && p.prompts.length) ? p.prompts.join('\n') : (p.content || ''),
           author_id: p.author_id || '',
           likes_count: p.likes_count || 0,
           views_count: p.views_count || 0,
@@ -63,7 +64,8 @@ export function CreatorDetailPage({ username, language, onBack }: CreatorDetailP
             is_cover: imgIdx === 0
           })),
           is_liked: false,
-          prompts: [] // 内容需要单独获取
+          // 将后端已格式化的 prompts 数组直接保留，供弹窗使用
+          prompts: p.prompts || []
         }))
         setPrompts(authorPrompts)
       } catch (error) {
@@ -77,7 +79,7 @@ export function CreatorDetailPage({ username, language, onBack }: CreatorDetailP
   if (!author) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">{isZh ? '作者未找到' : 'Author not found'}</p>
+        <p className="text-muted-foreground">{isZh ? '加载中...' : 'Loading...'}</p>
       </div>
     )
   }

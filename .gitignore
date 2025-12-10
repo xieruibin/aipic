@@ -42,3 +42,6 @@ supabase/
 # Script outputs
 scripts/image-mapping.json
 scripts/images-data.json
+scripts/failed-images.json
+scripts/query-images-filtered.ts
+scripts/update-images-urls.sql

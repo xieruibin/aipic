@@ -94,7 +94,9 @@ export async function fetchAuthors(options?: {
 export async function fetchAuthorByUsername(username: string) {
   try {
     if (!supabase) throw new Error('Supabase not initialized')
+
     
+
     // 获取作者信息
     const { data: author, error: authorError } = await supabase
       .from('authors')
@@ -102,26 +104,35 @@ export async function fetchAuthorByUsername(username: string) {
       .eq('username', username)
       .single();
 
+    
+
     if (authorError) throw authorError;
     if (!author) return null;
 
-    // 获取作者的所有提示词
+    // 获取作者的所有提示词（包括内容、图片、标签）
     const { data: prompts, error: promptsError } = await supabase
       .from('prompts')
       .select(`
         *,
         images(url, order_index),
-        prompt_tags(tags(name))
+        prompt_tags(tags(name)),
+        prompt_contents(content, order_index)
       `)
       .eq('author_id', author.id)
       .eq('status', 'published')
       .order('created_at', { ascending: false });
 
+    
+
     if (promptsError) throw promptsError;
 
-    // 格式化 prompts 数据，确保 images 按 order_index 排序
+    // 格式化 prompts 数据，确保 images 与内容按 order_index 排序
     const formattedPrompts = (prompts || []).map((p: any) => ({
       ...p,
+      prompts: (p.prompt_contents || [])
+        .sort((a: any, b: any) => a.order_index - b.order_index)
+        .map((pc: any) => pc.content)
+        .filter(Boolean),
       images: (p.images || [])
         .sort((a: any, b: any) => a.order_index - b.order_index)
         .map((img: any) => ({
@@ -132,6 +143,11 @@ export async function fetchAuthorByUsername(username: string) {
         .map((pt: any) => pt.tags?.name)
         .filter(Boolean)
     }));
+
+    
+
+    // 打印首个 prompt 的 prompts 字段样例，便于确认前端能拿到 content
+    
 
     return {
       ...author,

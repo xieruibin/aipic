@@ -238,7 +238,7 @@ export function CreatorsPage({ language, onSelectAuthor }: CreatorsPageProps) {
           <div className="text-center py-12">
             <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
             <p className="text-muted-foreground">
-              {language === 'zh' ? '没有找到匹配的创作者' : 'No creators found'}
+              {language === 'zh' ? '加载中...' : 'Loading...'}
             </p>
           </div>
         )}
