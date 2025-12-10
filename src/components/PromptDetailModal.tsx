@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Copy, Check, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Prompt } from '@/lib/types'
 import type { Language } from '../lib/i18n'
@@ -25,6 +25,11 @@ export function PromptDetailModal({
   const [copied, setCopied] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showPrompts, setShowPrompts] = useState(false)
+
+  // 当打开/切换 prompt 时重置图片索引
+  useEffect(() => {
+    setCurrentImageIndex(0)
+  }, [prompt])
 
   if (!isOpen || !prompt) return null
 
@@ -130,6 +135,21 @@ export function PromptDetailModal({
               </div>
             )}
           </div>
+
+          {/* 缩略图条：支持横向滚动与点击选择 */}
+          {images.length > 1 && (
+            <div className="flex gap-2 px-3 py-2 overflow-x-auto bg-black/20">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentImageIndex(idx)}
+                  className={`flex-shrink-0 w-20 h-14 rounded-md overflow-hidden border ${currentImageIndex === idx ? 'ring-2 ring-offset-1 ring-white' : 'border-transparent'}`}
+                >
+                  <img src={(img as any).image_url || (img as any).url} alt={`thumb-${idx}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* 左下角作者信息 */}
           <div className="absolute bottom-6 left-6 flex items-center gap-3 bg-black/60 backdrop-blur-sm rounded-xl px-4 py-3">
@@ -293,6 +313,21 @@ export function PromptDetailModal({
             </div>
           )}
         </div>
+
+        {/* 手机端缩略图（小屏） */}
+        {images.length > 1 && (
+          <div className="md:hidden flex gap-2 px-3 py-2 overflow-x-auto bg-black/10">
+            {images.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentImageIndex(idx)}
+                className={`flex-shrink-0 w-16 h-12 rounded-md overflow-hidden border ${currentImageIndex === idx ? 'ring-2 ring-offset-1 ring-white' : 'border-transparent'}`}
+              >
+                <img src={(img as any).image_url || (img as any).url} alt={`thumb-${idx}`} className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* 底部栏：作者 + 按钮 */}
         <div className="bg-slate-900 border-t border-slate-700 px-4 py-3 flex items-center justify-between gap-3">

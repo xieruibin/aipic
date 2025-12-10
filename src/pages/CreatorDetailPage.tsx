@@ -193,11 +193,7 @@ export function CreatorDetailPage({ username, language, onBack }: CreatorDetailP
                       )}
 
                       {/* Prompt Count Badge */}
-                      {prompt.content && (
-                        <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-md text-xs font-semibold bg-primary/90 text-primary-foreground">
-                          {prompt.content.split('\n').length} {isZh ? '提示词' : 'prompts'}
-                        </div>
-                      )}
+                      {prompt.conte}
                     </div>
                   ) : (
                     <div className="relative w-full aspect-[3/4] bg-muted flex items-center justify-center flex-shrink-0">
