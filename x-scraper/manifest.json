@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "X.com AI 提示词抓取器",
+  "version": "1.0.0",
+  "description": "专注抓取 X.com 上的 AI 图像生成提示词（Midjourney, Stable Diffusion, DALL-E 等）",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*"
+  ],
+  "action": {
+    "default_title": "AI 提示词抓取器"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

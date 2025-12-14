@@ -9,6 +9,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "import-data": "node scripts/import-aiart-data.js",
+    "merge-prompts": "node x-scraper/merge-data.js",
     "supabase:import": "node scripts/run-full-import.js",
     "supabase:import-data": "node scripts/import-data-to-supabase.js",
     "supabase:upload-images": "node scripts/upload-images-to-storage.js"

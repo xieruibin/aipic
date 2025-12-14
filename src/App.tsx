@@ -8,7 +8,7 @@ import { CategoryFilter } from './components/CategoryFilter'
 import { CreatorsPage } from './pages/CreatorsPage'
 import { AboutPage } from './pages/AboutPage'
 import { CreatorDetailPage } from './pages/CreatorDetailPage'
-import { Grid2x2, Columns, ArrowUp, Github, Sun, Moon, Monitor, Menu, X } from 'lucide-react'
+import { Grid2x2, Columns, ArrowUp, Github, Sun, Moon, Monitor, Menu, X, Image as ImageIcon, Users } from 'lucide-react'
 import type { Prompt } from './lib/types'
 import type { Language } from './lib/i18n'
 import { t } from './lib/i18n'
@@ -514,6 +514,20 @@ function App() {
                 </p>
               </div>
               <SearchBar onSearch={handleSearch} language={language} />
+
+              {/* 统计信息 */}
+              <div className="flex items-center gap-6 text-sm text-muted-foreground animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="flex items-center gap-2">
+                  <ImageIcon size={16} className="opacity-70" />
+                  <span>{prompts.length} {language === 'zh' ? '作品' : 'Prompts'}</span>
+                </div>
+                <div className="w-px h-4 bg-border" />
+                <div className="flex items-center gap-2">
+                  <Users size={16} className="opacity-70" />
+                  <span>{new Set(prompts.map(p => p.author?.username || '')).size} {language === 'zh' ? '作者' : 'Creators'}</span>
+                </div>
+              </div>
+
               {/* 已选标签和作者区域 */}
               {(selectedTags.length > 0 || selectedAuthors.length > 0) && (
                 <div className="w-full max-w-2xl mx-auto mt-2 mb-2 flex flex-wrap items-center gap-2 bg-card border border-border rounded-xl px-4 py-3">
@@ -552,28 +566,17 @@ function App() {
             {/* Category Filter and View Mode Toggle */}
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
                 {/* Category Filter */}
-                <div className="w-full xl:w-auto">
+                <div className="w-full xl:flex-1 min-w-0">
                   <CategoryFilter 
                     selectedCategory={selectedCategory}
                     onCategoryChange={setSelectedCategory}
                     language={language}
+                    prompts={prompts}
                   />
                 </div>
 
-                {/* Stats + View Mode Toggle */}
+                {/* View Mode Toggle */}
                 <div className="flex items-center gap-4">
-                  {/* 简单统计：作品总数 & 作者数量（在视图切换左侧） */}
-                  <div className="hidden sm:flex items-center gap-3">
-                    <div className="inline-flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-1 text-sm">
-                      <span className="text-xs text-muted-foreground">作品</span>
-                      <span className="font-medium">{prompts.length}</span>
-                    </div>
-                    <div className="inline-flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-1 text-sm">
-                      <span className="text-xs text-muted-foreground">作者</span>
-                      <span className="font-medium">{new Set(prompts.map(p => p.author?.username || '')).size}</span>
-                    </div>
-                  </div>
-
                   {/* View Mode Toggle */}
                   <div className="flex items-center gap-2">
                     <button

@@ -96,7 +96,7 @@ export function AboutPage({ language }: AboutPageProps) {
               {/* Author Support */}
               <div className="space-y-4">
                 <img
-                  src="/xrb.jpg"
+                  src="public/xrb.jpg"
                   alt="Author Support"
                   className="w-48 h-48 object-contain mx-auto rounded-xl border border-border"
                 />

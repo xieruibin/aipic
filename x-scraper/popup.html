@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X.com 列表抓取器</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 AI 提示词抓取器</h1>
+    
+    <div class="status">
+      <p id="statusText">准备就绪 - 将自动识别并抓取 AI 提示词推文</p>
+    </div>
+
+    <div class="controls">
+      <button id="startScrape" class="btn btn-primary">开始抓取</button>
+      <button id="stopScrape" class="btn btn-secondary">停止</button>
+    </div>
+
+    <div class="options">
+      <label>
+        <input type="checkbox" id="includeImages" checked>
+        包含图片
+      </label>
+      <label>
+        <input type="checkbox" id="includeText" checked>
+        包含文本
+      </label>
+      <label>
+        <input type="checkbox" id="includeMetadata" checked>
+        包含元数据
+      </label>
+    </div>
+
+    <div class="results">
+      <h3>抓取结果</h3>
+      <div id="resultsCount">已抓取: 0 条</div>
+      <button id="exportJson" class="btn btn-success">导出 JSON</button>
+      <button id="clearData" class="btn btn-danger">清除数据</button>
+    </div>
+
+    <div class="logs">
+      <h3>日志</h3>
+      <div id="logContainer"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
