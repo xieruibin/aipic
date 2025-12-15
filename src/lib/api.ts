@@ -442,6 +442,41 @@ export async function togglePromptLike(_promptId: string, _userId: string) {
 }
 
 /**
+ * 获取统计信息
+ */
+export async function fetchStats() {
+  try {
+    if (!supabase) throw new Error('Supabase not initialized')
+    
+    // 获取提示词总数
+    const { count: promptsCount, error: promptsError } = await supabase
+      .from('prompts')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'published')
+    
+    if (promptsError) throw promptsError
+    
+    // 获取作者总数
+    const { count: authorsCount, error: authorsError } = await supabase
+      .from('authors')
+      .select('*', { count: 'exact', head: true })
+    
+    if (authorsError) throw authorsError
+    
+    return {
+      totalPrompts: promptsCount || 0,
+      totalAuthors: authorsCount || 0,
+    }
+  } catch (error) {
+    console.error('获取统计信息失败:', error)
+    return {
+      totalPrompts: 0,
+      totalAuthors: 0,
+    }
+  }
+}
+
+/**
  * 搜索提示词和作者
  */
 export async function searchPrompts(query: string, options?: {

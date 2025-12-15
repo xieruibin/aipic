@@ -12,7 +12,7 @@ import { Grid2x2, Columns, ArrowUp, Github, Sun, Moon, Monitor, Menu, X, Image a
 import type { Prompt } from './lib/types'
 import type { Language } from './lib/i18n'
 import { t } from './lib/i18n'
-import { fetchPrompts as fetchPromptsFromAPI } from './lib/api'
+import { fetchPrompts as fetchPromptsFromAPI, fetchStats } from './lib/api'
 import './index.css'
 
 function App() {
@@ -32,6 +32,8 @@ function App() {
   const [displayedPrompts, setDisplayedPrompts] = useState<Prompt[]>([])
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [totalPrompts, setTotalPrompts] = useState(0)
+  const [totalAuthors, setTotalAuthors] = useState(0)
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('language') as Language | null
     return saved || 'zh'
@@ -98,11 +100,18 @@ function App() {
   const fetchPrompts = async () => {
     try {
       setLoading(true)
-      // 从 Supabase 获取所有提示词
-      const response = await fetchPromptsFromAPI({ 
-        page: 1, 
-        limit: 1000 // 一次获取足够多的数据
-      })
+      // 并行获取数据和统计信息
+      const [response, stats] = await Promise.all([
+        fetchPromptsFromAPI({ 
+          page: 1, 
+          limit: 1000 // 一次获取足够多的数据
+        }),
+        fetchStats()
+      ])
+      
+      // 更新统计信息
+      setTotalPrompts(stats.totalPrompts)
+      setTotalAuthors(stats.totalAuthors)
       
       const data = (response.data || []).map((p: any) => ({
         ...p,
@@ -525,12 +534,12 @@ function App() {
               <div className="flex items-center gap-6 text-sm text-muted-foreground animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <div className="flex items-center gap-2">
                   <ImageIcon size={16} className="opacity-70" />
-                  <span>{prompts.length} {language === 'zh' ? '作品' : 'Prompts'}</span>
+                  <span>{totalPrompts.toLocaleString()} {language === 'zh' ? '作品' : 'Prompts'}</span>
                 </div>
                 <div className="w-px h-4 bg-border" />
                 <div className="flex items-center gap-2">
                   <Users size={16} className="opacity-70" />
-                  <span>{new Set(prompts.map(p => p.author?.username || '')).size} {language === 'zh' ? '作者' : 'Creators'}</span>
+                  <span>{totalAuthors.toLocaleString()} {language === 'zh' ? '作者' : 'Creators'}</span>
                 </div>
               </div>
 
