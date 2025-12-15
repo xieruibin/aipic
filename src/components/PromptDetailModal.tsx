@@ -35,7 +35,10 @@ export function PromptDetailModal({
 
   const images = prompt.images || []
   const currentImage = images[currentImageIndex]?.image_url || images[0]?.image_url
-  const authorName = prompt.author?.username || 'Unknown'
+  
+  // 优先使用 name，其次是 username
+  const authorDisplayName = prompt.author?.name || prompt.author?.username || 'Unknown'
+  const authorUsername = prompt.author?.username
   const authorUrl = (prompt.author as any)?.url
   const authorAvatar = (prompt.author as any)?.avatar
   const tags = ((prompt as any).tags || []).filter((t: any) => typeof t === 'string')
@@ -57,7 +60,8 @@ export function PromptDetailModal({
   const handleAuthorClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (onAuthorClick) {
-      onAuthorClick(authorName)
+      // 用 username 作为过滤键
+      onAuthorClick(authorUsername || authorDisplayName)
       onClose()
     } else if (authorUrl) {
       window.open(authorUrl, '_blank', 'noopener,noreferrer')
@@ -156,16 +160,20 @@ export function PromptDetailModal({
             {authorAvatar && (
               <img
                 src={authorAvatar}
-                alt={authorName}
+                alt={authorDisplayName}
                 className="w-10 h-10 rounded-full border-2 border-white/20"
               />
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <button
                 onClick={handleAuthorClick}
-                className="text-white font-medium hover:text-blue-400 transition-colors cursor-pointer"
+                className="text-white font-medium hover:text-blue-400 transition-colors cursor-pointer truncate"
+                title={authorUsername ? `@${authorUsername}` : authorDisplayName}
               >
-                @{authorName}
+                {authorDisplayName}
+                {authorUsername && authorDisplayName !== authorUsername && (
+                  <span className="ml-1">(@{authorUsername})</span>
+                )}
               </button>
               {authorUrl && (
                 <a
@@ -173,7 +181,7 @@ export function PromptDetailModal({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="text-white/60 hover:text-white transition-colors"
+                  className="text-white/60 hover:text-white transition-colors flex-shrink-0"
                 >
                   <ExternalLink className="h-4 w-4" />
                 </a>
@@ -335,16 +343,22 @@ export function PromptDetailModal({
           <button
             onClick={handleAuthorClick}
             className="flex items-center gap-2 flex-1 min-w-0"
+            title={authorUsername ? `@${authorUsername}` : authorDisplayName}
           >
             {authorAvatar && (
               <img
                 src={authorAvatar}
-                alt={authorName}
+                alt={authorDisplayName}
                 className="w-8 h-8 rounded-full border border-white/20 flex-shrink-0"
               />
             )}
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-white font-medium text-sm truncate">@{authorName}</span>
+              <span className="text-white font-medium text-sm truncate">
+                {authorDisplayName}
+                {authorUsername && authorDisplayName !== authorUsername && (
+                  <span className="ml-1">(@{authorUsername})</span>
+                )}
+              </span>
               {authorUrl && (
                 <ExternalLink className="h-3.5 w-3.5 text-white/60 flex-shrink-0" />
               )}

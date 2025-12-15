@@ -22,14 +22,18 @@ export function PromptCard({ prompt, onClick, onTagClick, onAuthorClick }: Promp
   const categoryNameRaw = (typeof prompt.category === 'string' ? prompt.category : prompt.category?.name) || ''
   const categoryName = categoryNameRaw || 'Nano Banana Pro'
   const categoryColor = CATEGORY_COLORS[categoryName] || 'bg-gray-700 text-white'
-  const authorName = prompt.author?.username || (prompt as any).author || (prompt as any).author_name || 'Unknown'
+  
+  // 优先使用 name，其次是 username
+  const authorDisplayName = prompt.author?.name || prompt.author?.username || (prompt as any).author || 'Unknown'
+  const authorUsername = prompt.author?.username
   const authorUrl = (prompt as any).authorUrl || (prompt.author as any)?.url || (prompt.author as any)?.homepage_url
   const tags = ((prompt as any).tags || []).filter((t: any) => typeof t === 'string' && !t.startsWith('@')).slice(0, 3)
 
   const handleAuthorClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (onAuthorClick) {
-      onAuthorClick(authorName)
+      // 用 username 作为过滤键
+      onAuthorClick(authorUsername || authorDisplayName)
     } else if (authorUrl) {
       window.open(authorUrl, '_blank', 'noopener,noreferrer')
     }
@@ -119,8 +123,12 @@ export function PromptCard({ prompt, onClick, onTagClick, onAuthorClick }: Promp
           <button
             onClick={handleAuthorClick}
             className="font-medium text-foreground hover:text-primary hover:underline cursor-pointer"
+            title={authorUsername ? `@${authorUsername}` : authorDisplayName}
           >
-            {authorName}
+            {authorDisplayName}
+            {authorUsername && authorDisplayName !== authorUsername && (
+              <span className="text-muted-foreground ml-1">@{authorUsername}</span>
+            )}
           </button>
           {authorUrl && (
             <a

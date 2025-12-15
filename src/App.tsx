@@ -118,7 +118,13 @@ function App() {
           is_cover: idx === 0
         })),
         tags: p.tags || [],
-        author: p.author || { username: 'Unknown' }
+        author: p.authors ? {
+          id: p.authors.id,
+          username: p.authors.username,
+          name: p.authors.name,
+          avatar_url: p.authors.avatar_url,
+          url: p.authors.url
+        } : { username: 'Unknown', name: 'Unknown' }
       }))
       
       setPrompts(data)

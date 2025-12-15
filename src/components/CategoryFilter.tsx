@@ -7,6 +7,7 @@ interface CategoryFilterProps {
   selectedCategory: string | null
   onCategoryChange: (category: string | null) => void
   language?: Language
+  prompts?: Array<{ category?: { name: string } }>
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -16,7 +17,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Grok': 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-900'
 }
 
-export function CategoryFilter({ selectedCategory, onCategoryChange, language = 'zh' }: CategoryFilterProps) {
+export function CategoryFilter({ selectedCategory, onCategoryChange, language = 'zh', prompts = [] }: CategoryFilterProps) {
   const tr = t(language)
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([])
   const [loading, setLoading] = useState(true)
@@ -26,19 +27,28 @@ export function CategoryFilter({ selectedCategory, onCategoryChange, language = 
       try {
         setLoading(true)
         const result = await db.listCategories()
-        if (result && result.length > 0) {
-          setCategories(result)
-        } else {
-          // 如果没有分类，使用硬编码的分类
-          setCategories([
-            { id: '1', name: 'Nano Banana Pro' },
-            { id: '2', name: 'Midjourney' },
-            { id: '3', name: 'Grok' }
-          ])
-        }
+        let allCategories = result && result.length > 0 ? result : [
+          { id: '1', name: 'Nano Banana Pro' },
+          { id: '2', name: 'Midjourney' },
+          { id: '3', name: 'Grok' }
+        ]
+        
+        // 根据 prompts 计数，只保留有内容的分类
+        const categoryCounts = new Map<string, number>()
+        prompts.forEach(p => {
+          const catName = p.category?.name
+          if (catName) {
+            categoryCounts.set(catName, (categoryCounts.get(catName) || 0) + 1)
+          }
+        })
+        
+        const filteredCategories = allCategories.filter(cat =>
+          (categoryCounts.get(cat.name) || 0) > 0
+        )
+        
+        setCategories(filteredCategories)
       } catch (error) {
         console.error('获取分类失败:', error)
-        // 使用硬编码的分类
         setCategories([
           { id: '1', name: 'Nano Banana Pro' },
           { id: '2', name: 'Midjourney' },
@@ -50,7 +60,7 @@ export function CategoryFilter({ selectedCategory, onCategoryChange, language = 
     }
 
     fetchCategories()
-  }, [])
+  }, [prompts])
 
   if (loading) {
     return null

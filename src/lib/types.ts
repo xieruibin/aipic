@@ -5,6 +5,7 @@
 export interface Author {
   id: string
   username: string
+  name?: string
   avatar_url?: string
   bio?: string
   followers_count: number
